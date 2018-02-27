@@ -32,11 +32,12 @@ target_link_libraries(server m)
 set(CLIENT_SOURCE_FILES
 		all/gamekey.h
 		all/dconnect_settings.h
-		client/dclient_settings.h
+		client-C/dclient_settings.h
 		
 		all/dconnect.c
-		client/dclient.c
+		client-C/dclient.c
 		)
 add_executable(client ${CLIENT_SOURCE_FILES})
 target_link_libraries(client ${CURSES_LIBRARIES})
 target_link_libraries(client pthread)
+
