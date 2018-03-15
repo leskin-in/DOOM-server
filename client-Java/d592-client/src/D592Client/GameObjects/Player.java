@@ -1,5 +1,7 @@
-package D592Client;
+package D592Client.GameObjects;
 
+
+import D592Client.GameObjects.Unit;
 
 /**
  * A player (a real human player, not NPC)

@@ -1,4 +1,4 @@
-package D592Client;
+package D592Client.GameObjects;
 
 
 /**
