@@ -1,5 +1,7 @@
 package D592Client.NetUtils;
+import D592Client.Ticker;
 
+import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 
@@ -7,9 +9,9 @@ import java.net.SocketException;
  * A processor for all network operations and "low-level" server interaction
  */
 public class NetWorker {
-    public static synchronized NetWorker getInstance() {
+    public static synchronized NetWorker getInstance(Ticker ticker) {
         if (instance == null) {
-            instance = new NetWorker();
+            instance = new NetWorker(ticker);
         }
         return instance;
     }
@@ -24,7 +26,12 @@ public class NetWorker {
      * @throws SecurityException if the access to the given server is not allowed
      */
     public void connectTo(InetSocketAddress server) throws SocketException, IllegalArgumentException, SecurityException {
+        Packet packet = new Packet(PacketType.CONNECT, 0, StatusCode.ASK.getCode(), null);
+        socket = new DatagramSocket();
 
+        for (int i = 0; i < CLIENT_RECVTRYES; i++) {
+
+        }
     }
 
     /**
@@ -37,23 +44,36 @@ public class NetWorker {
     /**
      * Send data to the server
      *
-     * @param data data to send
+     * @param packet a packet to send
      */
-    public void send(int type, int meta, long tick, byte[] data) {
+    public void send(Packet packet) {
 
     }
 
     /**
      * Receive data from the server
      *
-     * @return data received
+     * @return a packet received
      */
-    public byte[] receive() {
+    public Packet receive() {
         return null;
     }
 
 
+    // Singleton instance
     private static NetWorker instance = null;
 
-    private NetWorker() {}
+    // A ticker for this packet sender
+    private Ticker ticker;
+
+    // Constants to describe the number of repeats of certain operations
+    private static final int CLIENT_RECVTRYES = 128;
+    private static final int CLIENT_REPEAT = 1;
+
+    // The key element of the class. Allows to send and receive UDP datagrams
+    private DatagramSocket socket;
+
+    private NetWorker(Ticker ticker) {
+        this.ticker = ticker;
+    }
 }

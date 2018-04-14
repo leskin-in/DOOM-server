@@ -1,28 +1,127 @@
 package D592Client.NetUtils;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.SocketAddress;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * A packet of data to send through the network
+ * A customizable packet of data.
+ * This is a factory of {@link DatagramPacket} with additional capabilities.
  */
 public class Packet {
-    public int type;
-    public int meta;
-    public long tick;
-    public byte[] data;
+    public static final int MAX_SIZE_UDP = 65536;
 
     /**
-     * Construct a fully customizable packet of data
+     * Deserialize a packet received from the network
      *
-     * @param type packet type. Must be one of the values from {@link PacketType}
-     * @param meta packet metadata. May be one of the values from {@link StatusCode}
-     * @param tick in-game time associated with this packet
-     * @param data packet contents
+     * @param bytes raw data from the network
+     * @return this
+     * @throws IOException if a parsing error occurs
+     */
+    public static Packet deserialize(byte[] bytes) throws IOException {
+        Packet result = new Packet();
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
+            try (DataInputStream dis = new DataInputStream(bais)) {
+                result.type = dis.readInt();
+                result.meta = dis.readInt();
+                result.tick = dis.readLong();
+                while (dis.available() > 0) {
+                    result.data.add((char)dis.readUnsignedByte());
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Construct a {@link Packet} of {@link PacketType} 'NONE'.
+     */
+    public Packet() {
+        this(PacketType.NONE, StatusCode.ASK.getCode(), 0, null);
+    }
+
+    /**
+     * Construct a customized {@link Packet}.
+     *
+     * @param type a {@link PacketType}
+     * @param meta packet metadata. May be a {@link StatusCode}
+     * @param tick in-game time for signing the packet
+     * @param data packet content
      *
      * Note that at the moment 'tick' field may actually be used as metadata
      */
-    Packet(PacketType type, int meta, long tick, byte[] data) {
+    public Packet(PacketType type, int meta, long tick, List<Character> data) {
         this.type = type.getCode();
         this.meta = meta;
         this.tick = tick;
-        this.data = data;
+        this.data = (data == null) ? null : new ArrayList<Character>(data);
     }
+
+    /**
+     * Create a {@link DatagramPacket} from the {@link Packet}.
+     *
+     * @param address Address to send packet to
+     * @return A complete {@link DatagramPacket}
+     * @throws IOException if a serialization error occurs
+     */
+    public DatagramPacket serialize(SocketAddress address) throws IOException {
+        byte[] serialized_data;
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream(MAX_SIZE_UDP)) {
+            try (DataOutputStream dos = new DataOutputStream(baos)) {
+                dos.writeInt(this.type);
+                dos.writeInt(this.meta);
+                dos.writeLong(this.tick);
+                for (char c : this.data) {
+                    dos.writeByte(c);
+                }
+                dos.flush();
+            }
+            serialized_data = baos.toByteArray();
+        }
+        return new DatagramPacket(serialized_data, serialized_data.length, address);
+    }
+
+    public void setType(PacketType newType) {
+        this.type = newType.getCode();
+    }
+
+    public void setMeta(int newMeta) {
+        this.meta = newMeta;
+    }
+
+    public void setTick(long newTick) {
+        this.tick = newTick;
+    }
+
+    public void setData(List<Character> newData) {
+        this.data = new ArrayList<Character>(newData);
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public int getMeta() {
+        return meta;
+    }
+
+    public long getTick() {
+        return tick;
+    }
+
+    public List<Character> getData() {
+        return new ArrayList<Character>(data);
+    }
+
+    // Packet values
+    private int type;
+    private int meta;
+    private long tick;
+    private ArrayList<Character> data;
 }
