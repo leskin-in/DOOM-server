@@ -1,17 +1,17 @@
 package D592Client.NetUtils;
-import D592Client.Ticker;
 
-import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
-import java.net.SocketException;
+import java.io.IOException;
+import java.net.*;
+import java.util.concurrent.TimeUnit;
 
 /**
- * A processor for all network operations and "low-level" server interaction
+ * A processor for all network operations and "low-level" server interaction.
+ * This class is a singleton.
  */
 public class NetWorker {
-    public static synchronized NetWorker getInstance(Ticker ticker) {
+    public static synchronized NetWorker getInstance() {
         if (instance == null) {
-            instance = new NetWorker(ticker);
+            instance = new NetWorker();
         }
         return instance;
     }
@@ -21,59 +21,116 @@ public class NetWorker {
      *
      * @param server the server to connect to
      *
-     * @throws SocketException if the connect fails
-     * @throws IllegalArgumentException if server address is incorrect
-     * @throws SecurityException if the access to the given server is not allowed
+     * @throws IOException if there are some problems with the connection
      */
-    public void connectTo(InetSocketAddress server) throws SocketException, IllegalArgumentException, SecurityException {
-        Packet packet = new Packet(PacketType.CONNECT, 0, StatusCode.ASK.getCode(), null);
-        socket = new DatagramSocket();
+    public synchronized void connect(InetSocketAddress server) throws IOException {
+        if (this.socket != null) {
+            return;
+        }
+        this.server = server;
 
-        for (int i = 0; i < CLIENT_RECVTRYES; i++) {
+        try {
+            // Bind socket
+            socket = new DatagramSocket();
+            socket.setSendBufferSize(Packet.MAX_SIZE_UDP);
+            socket.setReceiveBufferSize(Packet.MAX_SIZE_UDP);
+            socket.setSoTimeout(25);
+            socket.bind(null);
+            socket.connect(this.server);
 
+            // Get response from the server
+            Packet toSend = new Packet(PacketType.CONNECT, 0, StatusCode.ASK.getCode(), null);
+            Packet toReceive = null;
+            for (int i = 0; i < CLIENT_RECVTRYES; i++) {
+                this.send(toSend);
+                try {
+                    TimeUnit.MILLISECONDS.sleep(300);
+                }
+                catch (InterruptedException ex) {
+                    // pass
+                }
+
+                try {
+                    toReceive = this.receive();
+                }
+                catch (SocketTimeoutException ex) {
+                    continue;
+                }
+
+                if ((toReceive != null) && (toReceive.getTick() == StatusCode.SUCCESS.getCode())) {
+                    return;
+                }
+            }
+
+            throw new IOException("Cannot connect: the server is unreachable.");
+        }
+        catch (IOException ex) {
+            this.disconnect();
+            throw ex;
         }
     }
 
     /**
      * Disconnect from the server
      */
-    public void disconnect() {
-
+    public synchronized void disconnect() {
+        if (socket == null) {
+            return;
+        }
+        socket.disconnect();
+        socket.close();
+        socket = null;
     }
 
     /**
-     * Send data to the server
+     * Send {@link Packet} to the server
      *
      * @param packet a packet to send
+     *
+     * @throws IOException if the network send failed
      */
-    public void send(Packet packet) {
-
+    public void send(Packet packet) throws IOException {
+        if (socket == null) {
+            throw new IOException("Cannot connect: Socket was not created");
+        }
+        socket.send(packet.serialize(server));
     }
 
     /**
      * Receive data from the server
      *
      * @return a packet received
+     *
+     * @throws IOException if the network receive failed
      */
-    public Packet receive() {
-        return null;
+    public Packet receive() throws IOException {
+        if (socket == null) {
+            throw new IOException("Cannot connect: Socket was not created");
+        }
+        DatagramPacket dgp = new DatagramPacket(new byte[Packet.MAX_SIZE_UDP], Packet.MAX_SIZE_UDP);
+        socket.receive(dgp);
+        return Packet.deserialize(dgp.getData());
     }
 
-
-    // Singleton instance
+    /**
+     * Instance of a singleton
+     */
     private static NetWorker instance = null;
 
-    // A ticker for this packet sender
-    private Ticker ticker;
-
-    // Constants to describe the number of repeats of certain operations
+    /**
+     * Number of attempts made to receive a packet from the server
+     */
     private static final int CLIENT_RECVTRYES = 128;
-    private static final int CLIENT_REPEAT = 1;
 
-    // The key element of the class. Allows to send and receive UDP datagrams
-    private DatagramSocket socket;
+    /**
+     * A DatagramSocket to communicate with the server
+     */
+    private DatagramSocket socket = null;
 
-    private NetWorker(Ticker ticker) {
-        this.ticker = ticker;
-    }
+    /**
+     * An address of the server
+     */
+    private InetSocketAddress server;
+
+    private NetWorker() {}
 }

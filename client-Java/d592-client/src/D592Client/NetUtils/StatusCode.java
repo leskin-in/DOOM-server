@@ -10,7 +10,6 @@ public enum StatusCode {
         return code;
     }
 
-
     private int code;
 
     StatusCode(int code) {

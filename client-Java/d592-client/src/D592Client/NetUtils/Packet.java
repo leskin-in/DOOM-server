@@ -15,6 +15,9 @@ import java.util.List;
  * This is a factory of {@link DatagramPacket} with additional capabilities.
  */
 public class Packet {
+    /**
+     * Maximum possible size of a single UDP packet (in bytes)
+     */
     public static final int MAX_SIZE_UDP = 65536;
 
     /**
@@ -99,8 +102,12 @@ public class Packet {
         this.tick = newTick;
     }
 
+    /**
+     * Set 'data' field for the packet.
+     * @param newData will NOT be copied! The provided instance will be used directly
+     */
     public void setData(List<Character> newData) {
-        this.data = new ArrayList<Character>(newData);
+        this.data = newData;
     }
 
     public int getType() {
@@ -115,13 +122,16 @@ public class Packet {
         return tick;
     }
 
+    /**
+     * @return data field that is NOT copied! The returned instance is the same as in this packet
+     */
     public List<Character> getData() {
-        return new ArrayList<Character>(data);
+        return data;
     }
 
     // Packet values
     private int type;
     private int meta;
     private long tick;
-    private ArrayList<Character> data;
+    private List<Character> data;
 }
