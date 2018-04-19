@@ -40,7 +40,7 @@ public class NetWorker {
 
             // Get response from the server
             Packet toSend = new Packet(PacketType.CONNECT, 0, StatusCode.ASK.getCode(), null);
-            Packet toReceive = null;
+            Packet toReceive;
             for (int i = 0; i < CLIENT_RECVTRYES; i++) {
                 this.send(toSend);
                 try {
@@ -64,7 +64,7 @@ public class NetWorker {
 
             throw new IOException("Cannot connect: the server is unreachable.");
         }
-        catch (IOException ex) {
+        catch (Exception ex) {
             this.disconnect();
             throw ex;
         }
