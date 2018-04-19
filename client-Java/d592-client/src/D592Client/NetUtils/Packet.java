@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * A customizable packet of data.
- * This is a factory of {@link DatagramPacket} with additional capabilities.
+ * This is a builder of {@link DatagramPacket}
  */
 public class Packet {
     /**

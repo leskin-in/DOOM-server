@@ -7,5 +7,5 @@ import D592Client.NetUtils.Packet;
  * Transforms packets into objects
  */
 public class PacketDecoder {
-    
+
 }

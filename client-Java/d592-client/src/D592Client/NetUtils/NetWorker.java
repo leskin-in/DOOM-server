@@ -91,7 +91,7 @@ public class NetWorker {
      */
     public void send(Packet packet) throws IOException {
         if (socket == null) {
-            throw new IOException("Cannot connect: Socket was not created");
+            throw new IOException("Not connected to the server");
         }
         socket.send(packet.serialize(server));
     }
@@ -105,7 +105,7 @@ public class NetWorker {
      */
     public Packet receive() throws IOException {
         if (socket == null) {
-            throw new IOException("Cannot connect: Socket was not created");
+            throw new IOException("Not connected to the server");
         }
         DatagramPacket dgp = new DatagramPacket(new byte[Packet.MAX_SIZE_UDP], Packet.MAX_SIZE_UDP);
         socket.receive(dgp);
