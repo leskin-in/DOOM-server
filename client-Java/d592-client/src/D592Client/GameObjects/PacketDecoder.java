@@ -7,5 +7,7 @@ import D592Client.NetUtils.Packet;
  * Transforms packets into objects
  */
 public class PacketDecoder {
+    public static void deserializeToField(Field field, Packet packet) {
 
+    }
 }

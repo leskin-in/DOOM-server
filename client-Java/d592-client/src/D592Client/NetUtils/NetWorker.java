@@ -35,7 +35,6 @@ public class NetWorker {
             socket.setSendBufferSize(Packet.MAX_SIZE_UDP);
             socket.setReceiveBufferSize(Packet.MAX_SIZE_UDP);
             socket.setSoTimeout(25);
-            socket.bind(null);
             socket.connect(this.server);
 
             // Get response from the server

@@ -1,12 +1,10 @@
 package D592Client.NetUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.SocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,19 +22,25 @@ public class Packet {
      * Deserialize a packet received from the network
      *
      * @param bytes raw data from the network
-     * @return this
-     * @throws IOException if a parsing error occurs
+     * @return new instance of {@link Packet}
      */
-    public static Packet deserialize(byte[] bytes) throws IOException {
+    public static Packet deserialize(byte[] bytes) {
+        ByteBuffer deserializer = ByteBuffer.allocate(bytes.length);
+        deserializer.put(bytes);
+        deserializer.rewind();
         Packet result = new Packet();
-        try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
-            try (DataInputStream dis = new DataInputStream(bais)) {
-                result.type = dis.readInt();
-                result.meta = dis.readInt();
-                result.tick = dis.readLong();
-                while (dis.available() > 0) {
-                    result.data.add((char)dis.readUnsignedByte());
-                }
+        result.type = Integer.reverseBytes(deserializer.getInt());
+        result.meta = Integer.reverseBytes(deserializer.getInt());
+        result.tick = Long.reverseBytes(deserializer.getLong());
+        if (!deserializer.hasRemaining()) {
+            result.data = null;
+        }
+        else {
+            byte[] result_data_raw = new byte[deserializer.remaining()];
+            deserializer.get(result_data_raw);
+            result.data = new ArrayList<>();
+            for (byte c : result_data_raw) {
+                result.data.add((char)c);
             }
         }
         return result;
@@ -71,22 +75,23 @@ public class Packet {
      *
      * @param address Address to send packet to
      * @return A complete {@link DatagramPacket}
-     * @throws IOException if a serialization error occurs
      */
-    public DatagramPacket serialize(SocketAddress address) throws IOException {
-        byte[] serialized_data;
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream(MAX_SIZE_UDP)) {
-            try (DataOutputStream dos = new DataOutputStream(baos)) {
-                dos.writeInt(this.type);
-                dos.writeInt(this.meta);
-                dos.writeLong(this.tick);
-                for (char c : this.data) {
-                    dos.writeByte(c);
-                }
-                dos.flush();
-            }
-            serialized_data = baos.toByteArray();
+    public DatagramPacket serialize(SocketAddress address) {
+        int data_size = 0;
+        if (this.data != null) {
+            data_size = this.data.size();
         }
+        ByteBuffer serializer = ByteBuffer.allocate(4 + 4 + 8 + data_size);
+        serializer.order(ByteOrder.LITTLE_ENDIAN);
+        serializer.putInt(this.type);
+        serializer.putInt(this.meta);
+        serializer.putLong(this.tick);
+        if (this.data != null) {
+            for (char c : this.data) {
+                serializer.put((byte)c);
+            }
+        }
+        byte[] serialized_data = serializer.array();
         return new DatagramPacket(serialized_data, serialized_data.length, address);
     }
 

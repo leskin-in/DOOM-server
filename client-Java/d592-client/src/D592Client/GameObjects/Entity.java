@@ -6,5 +6,4 @@ package D592Client.GameObjects;
  */
 public abstract class Entity {
     public Cell location;
-
 }
