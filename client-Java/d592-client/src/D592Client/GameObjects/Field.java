@@ -1,8 +1,8 @@
 package D592Client.GameObjects;
 
 
+import java.awt.*;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A game field
@@ -14,7 +14,7 @@ public class Field {
         this.cells = new ArrayList<>(width * height);
     }
 
-    public List<Cell> cells;
+    public ArrayList<Cell> cells;
     public int width;
     public int height;
 }

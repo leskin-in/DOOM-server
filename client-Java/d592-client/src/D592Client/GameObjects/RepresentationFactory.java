@@ -7,8 +7,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 
 /**
@@ -21,7 +21,7 @@ public class RepresentationFactory {
     public static final int REPR_RREC = 4;
 
     public RepresentationFactory() {
-        this.map = new HashMap<>();
+        this.map = new TreeMap<>();
     }
 
     /**

@@ -1,12 +1,10 @@
 package D592Client.NetUtils;
 
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
 /**
  * A customizable packet of data.
@@ -36,12 +34,8 @@ public class Packet {
             result.data = null;
         }
         else {
-            byte[] result_data_raw = new byte[deserializer.remaining()];
-            deserializer.get(result_data_raw);
-            result.data = new ArrayList<>();
-            for (byte c : result_data_raw) {
-                result.data.add((char)c);
-            }
+            result.data = new byte[deserializer.remaining()];
+            deserializer.get(result.data);
         }
         return result;
     }
@@ -63,11 +57,11 @@ public class Packet {
      *
      * Note that at the moment 'tick' field may actually be used as metadata
      */
-    public Packet(PacketType type, int meta, long tick, List<Character> data) {
+    public Packet(PacketType type, int meta, long tick, byte[] data) {
         this.type = type.getCode();
         this.meta = meta;
         this.tick = tick;
-        this.data = (data == null) ? null : new ArrayList<Character>(data);
+        this.data = (data == null) ? null : Arrays.copyOf(data, data.length);
     }
 
     /**
@@ -79,7 +73,7 @@ public class Packet {
     public DatagramPacket serialize(SocketAddress address) {
         int data_size = 0;
         if (this.data != null) {
-            data_size = this.data.size();
+            data_size = this.data.length;
         }
         ByteBuffer serializer = ByteBuffer.allocate(4 + 4 + 8 + data_size);
         serializer.order(ByteOrder.LITTLE_ENDIAN);
@@ -87,8 +81,8 @@ public class Packet {
         serializer.putInt(this.meta);
         serializer.putLong(this.tick);
         if (this.data != null) {
-            for (char c : this.data) {
-                serializer.put((byte)c);
+            for (byte c : this.data) {
+                serializer.put(c);
             }
         }
         byte[] serialized_data = serializer.array();
@@ -108,10 +102,9 @@ public class Packet {
     }
 
     /**
-     * Set 'data' field for the packet.
-     * @param newData will NOT be copied! The provided instance will be used directly
+     * @param newData will not be copied
      */
-    public void setData(List<Character> newData) {
+    public void setData(byte[] newData) {
         this.data = newData;
     }
 
@@ -128,9 +121,9 @@ public class Packet {
     }
 
     /**
-     * @return data field that is NOT copied! The returned instance is the same as in this packet
+     * @return data field of the packet (not copied)
      */
-    public List<Character> getData() {
+    public byte[] getData() {
         return data;
     }
 
@@ -138,5 +131,5 @@ public class Packet {
     private int type;
     private int meta;
     private long tick;
-    private List<Character> data;
+    private byte[] data;
 }
