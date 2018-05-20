@@ -2,15 +2,19 @@ package D592Client.GameObjects;
 
 
 /**
- * A player (a real human player, not NPC)
+ * A representation of the current game player
  */
-public class Player extends Unit {
-    public Weapon weapon;
+public class Player extends Entity {
+    public int health;
     public int healthPercent;
+    public Weapon weapon;
 
-    public Player(int x, int y, int health, Weapon weapon) {
-        super(x, y, health);
-        this.weapon = weapon;
-        healthPercent = 11;
+    public Player() {
+        this.x = 0;
+        this.y = 0;
+        this.r = null;
+        this.health = 0;
+        this.healthPercent = 0;  // This is a default health percent
+        this.weapon = new Weapon();
     }
 }

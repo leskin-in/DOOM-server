@@ -1,9 +1,10 @@
 package D592Client.GameObjects;
 
-
 /**
- * An interactive game object
+ * A non-static game object
  */
 public abstract class Entity {
-    public Cell location;
+    public int x;
+    public int y;
+    public Representation r;
 }

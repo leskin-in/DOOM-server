@@ -14,13 +14,13 @@ import java.util.TreeMap;
  * Transforms packets into objects
  */
 public class PacketDecoder {
-    public static byte CODE_EMPTY   = ' ';
-    public static byte CODE_WALL    = '#';
-    public static byte CODE_PLAYER  = 'p';
-    public static byte CODE_ENEMY   = 'e';
-    public static byte CODE_HEAL    = '+';
-    public static byte CODE_POISON  = '-';
-    public static byte CODE_BOMB    = '*';
+    public static final byte CODE_EMPTY   = ' ';
+    public static final byte CODE_WALL    = '#';
+    public static final byte CODE_PLAYER  = 'p';
+    public static final byte CODE_ENEMY   = 'e';
+    public static final byte CODE_HEAL    = '+';
+    public static final byte CODE_POISON  = '-';
+    public static final byte CODE_BOMB    = '*';
 
     private static final Map<Byte, Representation> representations;
     static {
@@ -92,11 +92,10 @@ public class PacketDecoder {
 
     /**
      * Deserialize the packet into a field, filling all variables
-     * @param field game field to modify
-     * @param player the player to modify
      * @param packet a packet to deserialize
+     * @param game a {@link Game} object to modify
      */
-    public static void deserializeToField(Field field, Player player, Packet packet) throws IOException {
+    public static void deserializeToField(Packet packet, Game game) throws IOException {
         if (packet.getType() != PacketType.GAME.getCode()) {
             throw new IOException(
                     "Cannot build field from packet of type " + Integer.toString(packet.getType())
@@ -105,28 +104,30 @@ public class PacketDecoder {
         byte[] dataRaw = packet.getData();
 
         // Get game field
-        for (int y = 0; y < field.height; y++) {
-            for (int x = 0; x < field.width; x++) {
-                byte cellCode = dataRaw[y * field.height + x];
-                try {
-                    Representation r = representations.get(cellCode);
-                    field.cells.set(
-                            y * field.height + x,
-                            new Cell(x, y, r)
+        for (int y = 0; y < game.field.height; y++) {
+            for (int x = 0; x < game.field.width; x++) {
+                byte cellCode = dataRaw[y * game.field.width + x];
+                Representation r = representations.get(cellCode);
+                if (r == null) {
+                    throw new IOException(
+                            "Found incorrect cell code 0x" + Integer.toHexString(cellCode) + " at (" + Integer.toString(x) + ", " + Integer.toString(y) + ")"
                     );
                 }
-                catch (NullPointerException ex) {
-                    throw new IOException(
-                            "Found incorrect cell code 0x" + Integer.toHexString(cellCode) + " at ("
-                                    + Integer.toString(x) + ", " + Integer.toString(y) + ")"
-                    );
+                game.field.cells.set(
+                        y * game.field.width + x,
+                        new Cell(x, y, r)
+                );
+                if (cellCode == CODE_PLAYER) {
+                    game.player.r = representations.get(cellCode);
+                    game.player.x = x;
+                    game.player.y = y;
                 }
             }
         }
 
         // Get metadata
         String[] metaParameters = new String(
-                Arrays.copyOfRange(dataRaw, field.width * field.height, dataRaw.length),
+                Arrays.copyOfRange(dataRaw, game.field.width * game.field.height, dataRaw.length),
                 "ASCII"
         ).split("\\s+");
         if ((metaParameters.length < 4) || (metaParameters.length > 5)) {
@@ -134,9 +135,15 @@ public class PacketDecoder {
                     "The number of meta-parameters is incorrect. The parameters are " + String.join(" ", metaParameters)
             );
         }
-        player.health = Integer.parseInt(metaParameters[0]);
-        player.healthPercent = Integer.parseInt(metaParameters[1]);
-
-        player.weapon = new Weapon();
+        game.player.health = Integer.parseInt(metaParameters[0]);
+        game.player.healthPercent = Integer.parseInt(metaParameters[1]);
+        game.player.weapon.name = metaParameters[2];
+        game.player.weapon.charge = Integer.parseInt(metaParameters[3]);
+        if (metaParameters.length == 4) {
+            game.last_command = null;
+        }
+        else {
+            game.last_command = metaParameters[4];
+        }
     }
 }

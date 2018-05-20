@@ -1,7 +1,6 @@
 package D592Client.UserInterface;
 
 import java.awt.*;
-import javax.swing.*;
 
 /**
  * A panel with the game field

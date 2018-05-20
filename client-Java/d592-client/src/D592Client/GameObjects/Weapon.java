@@ -1,17 +1,14 @@
 package D592Client.GameObjects;
 
-
-import D592Client.GameObjects.Entity;
-
 /**
  * A weapon
  */
 public class Weapon extends Entity {
-    public Weapon(String typeCode, int charge) {
-        
-    }
+    public String name;
+    public int charge;
 
     public Weapon() {
-
+        this.name = null;
+        this.charge = 0;
     }
 }
