@@ -3,7 +3,7 @@ package D592Client.GameObjects;
 import java.awt.*;
 
 /**
- * A cell of a {@link Field}
+ * A cell of a {@link GameState}
  */
 public class Cell {
     public static final Dimension displaySize = new Dimension(24, 24);

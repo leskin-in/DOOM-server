@@ -1,11 +1,15 @@
 package D592Client;
 
+import D592Client.NetUtils.NetWorker;
 import D592Client.UserInterface.Panel;
 import D592Client.UserInterface.GameField;
-import D592Client.UserInterface.InformationPanel;
+import D592Client.UserInterface.ControlPanel;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import javax.swing.*;
+
 
 /**
  * A GUI invoker
@@ -25,31 +29,40 @@ public class Client {
  */
 class ClientFrame extends JFrame {
     ClientFrame() {
-        // Basic operations
+        //
+        /* Basic settings */
+        //
         this.setTitle("DOOM-592 client");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLocationByPlatform(true);
         this.setLayout(new GridBagLayout());
+        nwk = NetWorker.getInstance();
 
-        // Calculate size of the frame
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int actualHeight = Math.min(screenSize.width, screenSize.height);
-        int actualWidth;
-        if (screenSize.getWidth() - (double)(actualHeight * 5 / 4) < (Float.MIN_VALUE * 512)) {
-            //noinspection SuspiciousNameCombination
-            actualWidth = actualHeight;
-        }
-        else {
-            actualWidth = actualHeight * 5 / 4;
-        }
-        actualHeight -= (int)((double)actualHeight * 0.125);
-        actualWidth -= (int)((double)actualHeight * 0.125);
-        this.setSize(actualWidth, actualHeight);
+        //
+        /* Create components */
+        //
+        gameField = new GameField(11, 11);
+        controlPanel = new ControlPanel(gameField.getPreferredSize());
+        spacer = new Panel(new Dimension(
+                (int)(gameField.getPreferredSize().width * 0.25),
+                gameField.getPreferredSize().height + controlPanel.getPreferredSize().height
+        ));
+        this.setSize(
+                gameField.getPreferredSize().width + spacer.getPreferredSize().width,
+                gameField.getPreferredSize().height + controlPanel.getPreferredSize().height
+        );
 
-        // Create components
+        gameThread = GameThread.getInstance();
+        gameThread.setup(
+                
+        )
+
+        //
+        /* Add components */
+        //
         Insets insets = this.getInsets();
         this.getContentPane().add(
-                new GameField(),
+                gameField,
                 new GridBagConstraints(
                         0, 0,
                         3, 3,
@@ -61,7 +74,7 @@ class ClientFrame extends JFrame {
                 )
         );
         this.getContentPane().add(
-                new InformationPanel(),
+                controlPanel,
                 new GridBagConstraints(
                         0, 3,
                         3, 1,
@@ -73,7 +86,7 @@ class ClientFrame extends JFrame {
                 )
         );
         this.getContentPane().add(
-                new Panel(),
+                spacer,
                 new GridBagConstraints(
                         3, 0,
                         1, 4,
@@ -84,5 +97,79 @@ class ClientFrame extends JFrame {
                         0, 0
                 )
         );
+
+        //
+        /* Create and add actions */
+        //
+        InputMap gameFieldInputMap = this.gameField.getInputMap(JComponent.WHEN_FOCUSED);
+        ActionMap gameFieldActionMap = this.gameField.getActionMap();
+
+        gameFieldInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W, 0),         "move.up");
+        gameFieldInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),        "move.up");
+        gameFieldInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_KP_UP, 0),     "move.up");
+        gameFieldActionMap.put("move.up", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                System.err.println("UP");
+            }
+        });
+
+        gameFieldInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0),         "move.left");
+        gameFieldInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0),      "move.left");
+        gameFieldInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_KP_LEFT, 0),   "move.left");
+        gameFieldActionMap.put("move.left", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                System.err.println("LEFT");
+            }
+        });
+
+        gameFieldInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0),         "move.down");
+        gameFieldInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0),      "move.down");
+        gameFieldInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_KP_DOWN, 0),   "move.down");
+        gameFieldActionMap.put("move.down", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                System.err.println("DOWN");
+            }
+        });
+
+        gameFieldInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0),         "move.right");
+        gameFieldInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0),     "move.right");
+        gameFieldInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_KP_RIGHT, 0),  "move.right");
+        gameFieldActionMap.put("move.right", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                System.err.println("RIGHT");
+            }
+        });
+
+        gameFieldInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_B, 0),         "action.bomb");
+        gameFieldInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Q, 0),         "action.bomb");
+        gameFieldInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_E, 0),         "action.bomb");
+        gameFieldActionMap.put("action.bomb", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                System.err.println("BOMB");
+            }
+        });
+
+        gameFieldInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),    "action.exit");
+        gameFieldActionMap.put("action.exit", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                System.err.println("EXIT");
+            }
+        });
+
+
     }
+
+    private GameField gameField;
+    private ControlPanel controlPanel;
+    private Panel spacer;
+
+    private NetWorker nwk;
+    private Thread threadKeeper;
+    private GameThread gameThread;
 }

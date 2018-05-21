@@ -4,20 +4,25 @@ import java.awt.*;
 import javax.swing.*;
 
 /**
- * A base class for all panels used.
- * Can also be used for testing purposes, as it defines the methods of {@link JPanel}
+ * An empty panel
  */
 public class Panel extends JPanel {
+    private Dimension displaySize;
+
+    public Panel(Dimension panelSize) {
+        this.displaySize = new Dimension(panelSize);
+    }
+
     @Override
     public void paintComponent(Graphics g) {
-        g.setColor(Color.BLACK);
-        g.drawOval(0, 0, 15, 15);
-        g.setColor(Color.GREEN);
-        g.fillOval(0, 0, 15, 15);
+        Color previous = g.getColor();
+        g.setColor(Color.WHITE);
+        g.drawRect(0, 0, displaySize.width, displaySize.height);
+        g.setColor(previous);
     }
 
     @Override
     public Dimension getPreferredSize() {
-        return new Dimension(16, 16);
+        return displaySize;
     }
 }

@@ -24,7 +24,7 @@ public class NetWorker {
      * @throws IOException if there are some problems with the connection
      */
     public synchronized void connect(InetSocketAddress server) throws IOException {
-        if (this.socket != null) {
+        if (!this.isConnected()) {
             return;
         }
         this.server = server;
@@ -69,11 +69,15 @@ public class NetWorker {
         }
     }
 
+    public synchronized boolean isConnected() {
+        return (socket != null);
+    }
+
     /**
      * Disconnect from the server
      */
     public synchronized void disconnect() {
-        if (socket == null) {
+        if (!this.isConnected()) {
             return;
         }
         socket.disconnect();
@@ -89,7 +93,7 @@ public class NetWorker {
      * @throws IOException if the network send failed
      */
     public void send(Packet packet) throws IOException {
-        if (socket == null) {
+        if (!this.isConnected()) {
             throw new IOException("Not connected to the server");
         }
         socket.send(packet.serialize(server));
@@ -103,7 +107,7 @@ public class NetWorker {
      * @throws IOException if the network receive failed
      */
     public Packet receive() throws IOException {
-        if (socket == null) {
+        if (!this.isConnected()) {
             throw new IOException("Not connected to the server");
         }
         DatagramPacket dgp = new DatagramPacket(new byte[Packet.MAX_SIZE_UDP], Packet.MAX_SIZE_UDP);

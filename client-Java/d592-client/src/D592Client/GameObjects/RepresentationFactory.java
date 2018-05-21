@@ -30,39 +30,45 @@ public class RepresentationFactory {
      * @param size size of graphical object
      * @param properties properties of graphical object
      * @return {@link Representation} with the required properties. If the given representation exists, new one will not be created
-     * @throws IOException if the image URL is unavailable
-     * @throws IllegalArgumentException if the provided type is incorrect
+     * @throws IllegalArgumentException if any error happens. Note that we assume only static resourses (e.g., images) are used and they are available. If image could not be loaded for some reason, we throw the same exception
      *
      * <br>
      * <h3>The 'properties' parameter supported:</h2>
      * <ul>
-     *     <li><b>All types</b>: null</li>
-     *     <li><b>REPR_RECT</b>, <b>REPR_RREC</b>, <b>REPR_OVAL</b>: 1 or 2 of type {@link Color} (fill and border ones, respectively)</li>
-     *     <li><b>REPR_IMG</b>: 1st of type {@link String} - image location (can be a URL or a file); 2nd (optional) of type {@link Color} - background color</li>
+     *     <li><b>REPR_RECT</b>, <b>REPR_RREC</b>, <b>REPR_OVAL</b>: 1 or 2 of type {@link Color} (fill and border ones, respectively) (optional)</li>
+     *     <li><b>REPR_IMG</b>: 1st of type {@link String} - image location (can be a URL or a file) (required); 2nd (optional) of type {@link Color} - background color</li>
      * </ul>
      */
-    public Representation get(int type, Dimension size, Object... properties) throws IOException {
+    public Representation get(int type, Dimension size, Object... properties) {
         switch (type) {
             case REPR_RECT:
             case REPR_RREC:
             case REPR_OVAL:
             {
-                Color fillColor = null;
+                // Parse representation parameters
+                Color fillColor = DEFAULT_FILL_COLOR;
                 Color borderColor = null;
-                if (properties != null) {
+                if (properties.length > 0) {
                     if (properties[0] instanceof Color) {
                         fillColor = (Color)properties[0];
                     }
                     else {
-                        throw new IOException("The type of a required parameter of Representation is incorrect");
+                        throw new IllegalArgumentException("The type of a parameter of Representation is incorrect");
                     }
-                    if (properties[1] instanceof Color) {
-                        borderColor = (Color)properties[1];
+                    if (properties.length == 2) {
+                        if (properties[1] instanceof Color) {
+                            borderColor = (Color)properties[1];
+                        }
+                        else {
+                            throw new IllegalArgumentException("The type of a parameter of Representation is incorrect");
+                        }
+                    }
+                    else if (properties.length > 2) {
+                        throw new IllegalArgumentException("The number of parameters of Representation is incorrect");
                     }
                 }
-                else {
-                    throw new IOException("Not all parameters of Representation were provided");
-                }
+
+                // Create a key and return value if it exists
                 String key = Integer.toString(type)
                         + ":"
                         + size.width
@@ -75,7 +81,8 @@ public class RepresentationFactory {
                 if (map.containsKey(key)) {
                     return map.get(key);
                 }
-                // If these calls rewrite some object, nothing bad happens, just the efficiency decreases
+
+                // Create object
                 if ((type == REPR_RECT) || (type == REPR_RREC)) {
                     map.put(
                             key,
@@ -101,22 +108,33 @@ public class RepresentationFactory {
             }
             case REPR_IMG:
             {
+                // Parse representation parameters
                 Color bgColor = null;
-                String location = null;
-                if (properties != null) {
+                String location;
+                if (properties.length > 0) {
                     if (properties[0] instanceof String) {
                         location = (String)properties[0];
                     }
                     else {
-                        throw new IOException("The type of parameter #1 of Representation is incorrect");
+                        throw new IllegalArgumentException("The type of a parameter of Representation is incorrect");
                     }
-                    if (properties[1] instanceof Color) {
-                        bgColor = (Color)properties[1];
+                    if (properties.length == 2) {
+                        if (properties[1] instanceof Color) {
+                            bgColor = (Color)properties[1];
+                        }
+                        else {
+                            throw new IllegalArgumentException("The type of a parameter of Representation is incorrect");
+                        }
+                    }
+                    else if (properties.length > 2) {
+                        throw new IllegalArgumentException("The number of parameters of Representation is incorrect");
                     }
                 }
                 else {
-                    throw new IOException("Not all parameters of Representation were provided");
+                    throw new IllegalArgumentException("The requested representation requires some parameters that were not provided");
                 }
+
+                // Create a key and return value if it exists
                 String key = Integer.toString(type)
                         + ":"
                         + size.width
@@ -129,6 +147,8 @@ public class RepresentationFactory {
                 if (map.containsKey(key)) {
                     return map.get(key);
                 }
+
+                // Create object
                 URL url = null;
                 File file = null;
                 try {
@@ -138,11 +158,15 @@ public class RepresentationFactory {
                     file = new File(location);
                 }
                 Image image;
-                if (url != null) {
-                    image = ImageIO.read(url);
+                try {
+                    if (url != null) {
+                        image = ImageIO.read(url);
+                    } else {
+                        image = ImageIO.read(file);
+                    }
                 }
-                else {
-                    image = ImageIO.read(file);
+                catch (IOException ex) {
+                    throw new IllegalArgumentException("Cannot read image file or URL: " + ex.getMessage());
                 }
                 map.put(
                         key,
@@ -157,19 +181,13 @@ public class RepresentationFactory {
         }
     }
 
+    private static final Color DEFAULT_FILL_COLOR = Color.LIGHT_GRAY;
+
     private Map<String, Representation> map;
 }
 
 
 class RectRepresentation implements Representation {
-    RectRepresentation(Dimension size, Color color) {
-        this(size, color, null, false);
-    }
-
-    RectRepresentation(Dimension size, Color fillColor, Color borderColor) {
-        this(size, fillColor, borderColor, false);
-    }
-
     RectRepresentation(Dimension size, Color fillColor, Color borderColor, boolean isRounded) {
         this.size = size;
         this.fillColor = fillColor;
@@ -220,10 +238,6 @@ class RectRepresentation implements Representation {
 
 
 class OvalRepresentation implements Representation {
-    OvalRepresentation(Dimension size, Color color) {
-        this(size, color, null);
-    }
-
     OvalRepresentation(Dimension size, Color fillColor, Color borderColor) {
         this.size = size;
         this.fillColor = fillColor;
@@ -254,10 +268,6 @@ class OvalRepresentation implements Representation {
 
 
 class ImageRepresentation implements Representation {
-    ImageRepresentation(Dimension size, Image image) {
-        this(size, image, null);
-    }
-
     ImageRepresentation(Dimension size, Image image, Color bgColor) {
         this.size = size;
         this.image = image;
