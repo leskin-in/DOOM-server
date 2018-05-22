@@ -1,6 +1,6 @@
 package D592Client.UserInterface;
 
-public interface PlayerdataIndicator {
+public interface IndicatorPlayer {
     /**
      * Update health indicators and repaint the indicator
      */

@@ -24,7 +24,7 @@ public class NetWorker {
      * @throws IOException if there are some problems with the connection
      */
     public synchronized void connect(InetSocketAddress server) throws IOException {
-        if (!this.isConnected()) {
+        if (this.isConnected()) {
             return;
         }
         this.server = server;

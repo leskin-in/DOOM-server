@@ -31,7 +31,7 @@ public class PacketDecoder {
                 factory.get(
                         RepresentationFactory.REPR_RECT,
                         Cell.displaySize,
-                        new Color(0, 0, 0)
+                        Representation.BACKGROUND_COLOR
                 )
         );
         temporaryMap.put(
@@ -39,47 +39,50 @@ public class PacketDecoder {
                 factory.get(
                         RepresentationFactory.REPR_RECT,
                         Cell.displaySize,
-                        new Color(255, 255, 255)
+                        new Color(34, 14, 17),
+                        new Color(0, 0, 0)
                 )
         );
         temporaryMap.put(
                 CODE_PLAYER,
                 factory.get(
-                        RepresentationFactory.REPR_OVAL,
+                        RepresentationFactory.REPR_RREC,
                         Cell.displaySize,
-                        new Color(0, 255, 0)
+                        new Color(239, 211, 52),
+                        new Color(106, 95, 49)
                 )
         );
         temporaryMap.put(
                 CODE_ENEMY,
                 factory.get(
-                        RepresentationFactory.REPR_OVAL,
+                        RepresentationFactory.REPR_RREC,
                         Cell.displaySize,
-                        new Color(255, 0, 0)
+                        new Color(86, 3, 25),
+                        new Color(106, 95, 49)
                 )
         );
         temporaryMap.put(
                 CODE_HEAL,
                 factory.get(
-                        RepresentationFactory.REPR_RECT,
+                        RepresentationFactory.REPR_OVAL,
                         Cell.displaySize,
-                        new Color(255, 192, 203)
+                        new Color(93, 161, 48)
                 )
         );
         temporaryMap.put(
                 CODE_POISON,
                 factory.get(
-                        RepresentationFactory.REPR_RECT,
+                        RepresentationFactory.REPR_OVAL,
                         Cell.displaySize,
-                        new Color(64, 130, 109)
+                        new Color(0, 84, 31)
                 )
         );
         temporaryMap.put(
                 CODE_BOMB,
                 factory.get(
-                        RepresentationFactory.REPR_RECT,
+                        RepresentationFactory.REPR_OVAL,
                         Cell.displaySize,
-                        new Color(128, 107, 42)
+                        new Color(21, 23, 25)
                 )
         );
         representations = temporaryMap;

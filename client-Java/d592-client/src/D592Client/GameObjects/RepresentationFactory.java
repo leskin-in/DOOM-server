@@ -46,7 +46,7 @@ public class RepresentationFactory {
             case REPR_OVAL:
             {
                 // Parse representation parameters
-                Color fillColor = DEFAULT_FILL_COLOR;
+                Color fillColor = Representation.BACKGROUND_COLOR;
                 Color borderColor = null;
                 if (properties.length > 0) {
                     if (properties[0] instanceof Color) {
@@ -181,8 +181,6 @@ public class RepresentationFactory {
         }
     }
 
-    private static final Color DEFAULT_FILL_COLOR = Color.LIGHT_GRAY;
-
     private Map<String, Representation> map;
 }
 
@@ -197,8 +195,13 @@ class RectRepresentation implements Representation {
 
     public void draw(Graphics g, Point2D location) {
         Color temp = g.getColor();
-        g.setColor(fillColor);
         if (this.isRounded) {
+            g.setColor(Representation.BACKGROUND_COLOR);
+            g.fillRect(
+                    (int)location.getX(), (int)location.getY(),
+                    size.width, size.height
+            );
+            g.setColor(fillColor);
             g.fillRoundRect(
                     (int)location.getX(), (int)location.getY(),
                     size.width, size.height,
@@ -206,6 +209,7 @@ class RectRepresentation implements Representation {
             );
         }
         else {
+            g.setColor(fillColor);
             g.fillRect(
                     (int)location.getX(), (int)location.getY(),
                     size.width, size.height
@@ -246,6 +250,11 @@ class OvalRepresentation implements Representation {
 
     public void draw(Graphics g, Point2D location) {
         Color temp = g.getColor();
+        g.setColor(Representation.BACKGROUND_COLOR);
+        g.fillRect(
+                (int)location.getX(), (int)location.getY(),
+                size.width, size.height
+        );
         g.setColor(fillColor);
         g.fillOval(
                 (int)location.getX(), (int)location.getY(),

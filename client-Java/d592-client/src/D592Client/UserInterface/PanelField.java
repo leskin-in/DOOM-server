@@ -5,26 +5,28 @@ import D592Client.GameObjects.GameState;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 
 /**
  * A panel with the game field
  */
-public class GameField extends JPanel implements FieldIndicator {
-    public GameField(int widthInCells, int heightInCells) {
-        this.gameState = new GameState(widthInCells, heightInCells);
+public class PanelField extends JPanel implements IndicatorField {
+    public PanelField(int widthInCells, int heightInCells) {
         this.displaySize = new Dimension(
-                this.gameState.fieldWidth * Cell.displaySize.width,
-                this.gameState.fieldHeight * Cell.displaySize.height
+                widthInCells * Cell.displaySize.width,
+                heightInCells * Cell.displaySize.height
         );
+        this.field = new GameState(widthInCells, heightInCells).fieldCells;
+        this.fieldSize = new Dimension(widthInCells, heightInCells);
     }
 
     @Override
     public void paintComponent(Graphics g) {
-        Iterator<Cell> c = gameState.fieldCells.iterator();
-        for (int y = 0; y < gameState.fieldHeight; y++) {
-            for (int x = 0; x < gameState.fieldWidth; x++) {
+        Iterator<Cell> c = field.iterator();
+        for (int y = 0; y < fieldSize.height; y++) {
+            for (int x = 0; x < fieldSize.width; x++) {
                 if (!c.hasNext()) {
                      // This could not have happened
                     System.err.println("ERR: Game field size is inconsistent with display size");
@@ -40,12 +42,12 @@ public class GameField extends JPanel implements FieldIndicator {
     }
 
     public void updateField(GameState state) {
-        this.gameState = state;
+        this.field = state.fieldCells;
         this.repaint();
     }
 
-
     private final Dimension displaySize;
 
-    private GameState gameState;
+    private ArrayList<Cell> field;
+    private Dimension fieldSize;
 }

@@ -14,7 +14,7 @@ public class Packet {
     /**
      * Maximum possible size of a single UDP packet (in bytes)
      */
-    public static final int MAX_SIZE_UDP = 65536;
+    static final int MAX_SIZE_UDP = 65536;
 
     /**
      * Deserialize a packet received from the network
@@ -34,8 +34,14 @@ public class Packet {
             result.data = null;
         }
         else {
-            result.data = new byte[deserializer.remaining()];
-            deserializer.get(result.data);
+            byte[] temp = new byte[deserializer.remaining()];
+            byte b;
+            int actualDataSize = 0;
+            while ((b = deserializer.get()) != '\0') {
+                temp[actualDataSize] = b;
+                actualDataSize += 1;
+            }
+            result.data = Arrays.copyOf(temp, actualDataSize);
         }
         return result;
     }
@@ -71,11 +77,11 @@ public class Packet {
      * @return A complete {@link DatagramPacket}
      */
     public DatagramPacket serialize(SocketAddress address) {
-        int data_size = 0;
+        int actualDataSize = 0;
         if (this.data != null) {
-            data_size = this.data.length;
+            actualDataSize = this.data.length;
         }
-        ByteBuffer serializer = ByteBuffer.allocate(4 + 4 + 8 + data_size);
+        ByteBuffer serializer = ByteBuffer.allocate(4 + 4 + 8 + actualDataSize);
         serializer.order(ByteOrder.LITTLE_ENDIAN);
         serializer.putInt(this.type);
         serializer.putInt(this.meta);

@@ -13,11 +13,11 @@ public enum PacketType {
     // Special packets
     CLIENT_ACTION(20), MESSAGE(31);
 
-    public int getCode() {
+    public final int getCode() {
         return code;
     }
 
-    private int code;
+    private final int code;
 
     PacketType(int code) {
         this.code = code;
