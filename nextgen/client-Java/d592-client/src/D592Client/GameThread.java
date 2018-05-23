@@ -11,13 +11,13 @@ import D592Client.UserInterface.UICommand.UICommand;
 
 import java.awt.*;
 import java.io.IOException;
-import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 
-// TODO: To Observer (this could be an `Observable` class)
 /**
  * A game controller. Keeps the game going, manages all game logic objects
  */
@@ -32,17 +32,12 @@ public class GameThread implements Runnable {
     /**
      * Setup the {@link GameThread}
      * @param nwk the network requests processor to use
-     * @param fieldUI the output field
-     * @param playerdataUI the output player data
      * @throws IllegalAccessException if the {@link GameThread} is already running
      * @throws IllegalArgumentException if the provided {@link NetWorker} is not connected
      */
     public void setup (
             Dimension fieldSize,
-            NetWorker nwk,
-            IndicatorField fieldUI,
-            IndicatorPlayer playerdataUI,
-            IndicatorMessage messageUI
+            NetWorker nwk
     ) throws IllegalAccessException {
         interactionLock.lock();
         try {
@@ -50,15 +45,65 @@ public class GameThread implements Runnable {
                 throw new IllegalAccessException("The GameThread is running");
             }
             this.nwk = nwk;
-            this.fieldUI = fieldUI;
-            this.playerUI = playerdataUI;
-            this.messageUI = messageUI;
+            this.fieldUIs = new LinkedList<>();
+            this.playerUIs = new LinkedList<>();
+            this.messageUIs = new LinkedList<>();
 
             this.gameState = new GameState(fieldSize.width, fieldSize.height);
             this.commandBuffer = null;
             this.tick = 0;
 
             this.isSetupComplete = true;
+        }
+        finally {
+            interactionLock.unlock();
+        }
+    }
+
+    /**
+     * Subscribe for updates for {@link IndicatorField}
+     * @param ind subscriber
+     * @throws IllegalAccessException if this GameThread was not setup
+     */
+    public void subscribeIndicator(IndicatorField ind) throws IllegalAccessException {
+        if (!this.isSetupComplete) {
+            throw new IllegalAccessException("Trying to subscribe for a GameThread that was not setup");
+        }
+        this.fieldUIs.add(ind);
+    }
+
+    /**
+     * Subscribe for updates for {@link IndicatorPlayer}
+     * @param ind subscriber
+     * @throws IllegalAccessException if this GameThread was not setup
+     */
+    public void subscribeIndicator(IndicatorPlayer ind) throws IllegalAccessException {
+        if (!this.isSetupComplete) {
+            throw new IllegalAccessException("Trying to subscribe for a GameThread that was not setup");
+        }
+        this.playerUIs.add(ind);
+    }
+
+    /**
+     * Subscribe for updates for {@link IndicatorMessage}
+     * @param ind subscriber
+     * @throws IllegalAccessException if this GameThread was not setup
+     */
+    public void subscribeIndicator(IndicatorMessage ind) throws IllegalAccessException {
+        if (!this.isSetupComplete) {
+            throw new IllegalAccessException("Trying to subscribe for a GameThread that was not setup");
+        }
+        this.messageUIs.add(ind);
+    }
+
+    /**
+     * Rewrite (or add) a {@link UICommand} for this GameThread
+     * @param uiCommand the command to execute
+     */
+    public void command(UICommand uiCommand) {
+        interactionLock.lock();
+        try {
+            commandBuffer = uiCommand;
         }
         finally {
             interactionLock.unlock();
@@ -94,7 +139,7 @@ public class GameThread implements Runnable {
         int clientId;  // A signature for packets from this client
 
         // Non-game actions
-        this.messageUI.updateMessage("Please wait");
+        this.updateMessageUIs("Please wait");
         while (true) {
             try {
                 buff = nwk.receive();
@@ -105,7 +150,7 @@ public class GameThread implements Runnable {
 
             if (buff.getType() == PacketType.MESSAGE.getCode()) {
                 String message = new String(buff.getData());
-                this.messageUI.updateMessage(message);
+                this.updateMessageUIs(message);
             }
             else if ((buff.getType() == PacketType.GAME_PREPARE.getCode())
                     || (buff.getType() == PacketType.GAME_BEGIN.getCode())) {
@@ -115,7 +160,7 @@ public class GameThread implements Runnable {
         }
 
         // Game starts
-        this.messageUI.updateMessage("PREPARE!");
+        this.updateMessageUIs("PREPARE!");
         while (buff.getType() == PacketType.GAME_PREPARE.getCode()) {
             try {
                 buff = nwk.receive();
@@ -124,7 +169,7 @@ public class GameThread implements Runnable {
                 // pass
             }
         }
-        this.messageUI.updateMessage("START");
+        this.updateMessageUIs("START");
         interactionLock.lock();
         commandBuffer = null;
         interactionLock.unlock();
@@ -136,7 +181,7 @@ public class GameThread implements Runnable {
         }
 
         // In-game actions
-        this.messageUI.updateMessage("GAME IS GOING");
+        this.updateMessageUIs("GAME IS GOING");
         while (true) {
             // Receive a packet from server
             try {
@@ -184,9 +229,11 @@ public class GameThread implements Runnable {
             }
 
             // Update field and player indicators
-            fieldUI.updateField(gameState);
-            playerUI.updateHealth(gameState.playerHealth, gameState.playerHealthPercent);
-            playerUI.updateWeapon(gameState.weapon, gameState.weaponCharge);
+            this.updateFieldUIs(gameState);
+            this.updatePlayerUIs(
+                    gameState.playerHealth, gameState.playerHealthPercent,
+                    gameState.weapon, gameState.weaponCharge
+            );
         }
 
         // Game finished. Note that the last packet was of type GAME_OVER
@@ -211,20 +258,6 @@ public class GameThread implements Runnable {
         Client.doExit(0, "Game finished");
     }
 
-    /**
-     * Rewrite (or add) a {@link UICommand} for this GameThread
-     * @param uiCommand the command to execute
-     */
-    public void command(UICommand uiCommand) {
-        interactionLock.lock();
-        try {
-            commandBuffer = uiCommand;
-        }
-        finally {
-            interactionLock.unlock();
-        }
-    }
-
 
     private static GameThread instance = null;
 
@@ -232,9 +265,28 @@ public class GameThread implements Runnable {
         interactionLock = new ReentrantLock(true);
     }
 
+    private void updateFieldUIs(GameState state) {
+        for (IndicatorField ind : this.fieldUIs) {
+            ind.updateField(state);
+        }
+    }
+
+    private void updatePlayerUIs(int health, int healthPercent, String weapon, int weaponCharge) {
+        for (IndicatorPlayer ind : this.playerUIs) {
+            ind.updateHealth(health, healthPercent);
+            ind.updateWeapon(weapon, weaponCharge);
+        }
+    }
+
+    private void updateMessageUIs(String message) {
+        for (IndicatorMessage ind : this.messageUIs) {
+            ind.updateMessage(message);
+        }
+    }
+
     /**
      * Finish the game and update the GUI accordingly
-     * @param isWin was the game winned by a current player
+     * @param isWin true if the current player has won the game
      *
      * @implNote This function must be called ONLY by 'run()',
      * as it requires a few objects to be initialized in advance
@@ -249,14 +301,13 @@ public class GameThread implements Runnable {
         for (int i = 0; i < gameState.fieldCells.size(); i++) {
             gameState.fieldCells.get(i).r = display;
         }
-        this.fieldUI.updateField(this.gameState);
-
+        this.updateFieldUIs(this.gameState);
         // Message
         if (isWin) {
-            this.messageUI.updateMessage("\uD83C\uDFC6 You've WON! \uD83C\uDFC6");
+            this.updateMessageUIs("\uD83C\uDFC6 You've WON! \uD83C\uDFC6");
         }
         else {
-            this.messageUI.updateMessage("☹ You've lost ☹");
+            this.updateMessageUIs("☹ You've lost ☹");
         }
     }
 
@@ -269,7 +320,7 @@ public class GameThread implements Runnable {
     private UICommand commandBuffer;
     private long tick;
 
-    private IndicatorField fieldUI;
-    private IndicatorPlayer playerUI;
-    private IndicatorMessage messageUI;
+    private List<IndicatorField> fieldUIs;
+    private List<IndicatorPlayer> playerUIs;
+    private List<IndicatorMessage> messageUIs;
 }

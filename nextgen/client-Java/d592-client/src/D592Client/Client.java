@@ -88,11 +88,11 @@ class ClientFrame extends JFrame {
         try {
             gameThread.setup(
                     new Dimension(11, 11),
-                    nwk,
-                    panelField,
-                    panelControl,
-                    panelMessage
+                    nwk
             );
+            gameThread.subscribeIndicator(panelField);
+            gameThread.subscribeIndicator(panelControl);
+            gameThread.subscribeIndicator(panelMessage);
         }
         catch (IllegalAccessException ex) {
             Client.doExit(1, "Cannot setup GameThread");
