@@ -1,3 +1,4 @@
-# DOOM-592
-##### A simple multiplayer console 2D platformer
+# simpleplat
+
+A simple multiplayer platformer
 
