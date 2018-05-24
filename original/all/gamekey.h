@@ -66,7 +66,7 @@
 // ========================================================================== //
 
 /// Tick, an in-game time equivalent
-#define TICK_TYPE uint64_t
+#define TICK_TYPE int64_t
 
 
 
