@@ -79,10 +79,10 @@ class ClientFrame extends JFrame {
         panelControl = new PanelControl(panelField.getPreferredSize());
         panelMessage = new PanelMessage(panelField.getPreferredSize());
         this.setSize(
-                panelField.getPreferredSize().width,
-                panelField.getPreferredSize().height
+                (int)(panelField.getPreferredSize().width * 1.2),
+                (int)(1.2 * (panelField.getPreferredSize().height
                         + panelControl.getPreferredSize().height
-                        + panelMessage.getPreferredSize().height
+                        + panelMessage.getPreferredSize().height))
         );
         gameThread = GameThread.getInstance();
         try {
