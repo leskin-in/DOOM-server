@@ -17,6 +17,12 @@ After downloading, open the console, go to the download directory and run
 sudo dpkg -i ./d592-client_0.4_all.deb
 ```
 
+In case there is no JRE or Python3 installed on the machine, install them by running the following command from the terminal:
+```
+sudo apt install -y openjdk-8-jre python3
+```
+After that, install the D592 client (using the command mentioned above).
+
 ### Server
 Do the same as for the client. The command to run is
 ```
