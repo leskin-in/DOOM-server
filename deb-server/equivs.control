@@ -1,0 +1,23 @@
+Section: multiverse/games
+Standards-Version: 3.9.2
+
+Package: d592-server
+Version: 0.4
+
+Priority: optional
+Homepage: github.com/leskin-in/simpleplat
+Maintainer: Ivan Leskin <leskin.in@phystech.edu>
+
+Links: /usr/share/d592-server/server.sh /usr/games/d592-server
+
+Files: ./files/server.sh /usr/share/d592-server
+ ./files/server /usr/share/d592-server
+ ./files/example_1.map /var/d592-server
+ ./files/example_2.map /var/d592-server
+
+Description: DOOM-592 server
+ This is the server of DOOM-592 - a simple multiplayer online platformer.
+ The server provides an interactive console interface which is used to control
+ the game flow.
+
+ This package also includes an example map.

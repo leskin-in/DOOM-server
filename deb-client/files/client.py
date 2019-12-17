@@ -2,6 +2,10 @@
 
 import tkinter
 import subprocess
+import os
+
+
+JAR_LOCATION = '/usr/share/d592-client/d592client.jar'
 
 
 def main():
@@ -10,7 +14,7 @@ def main():
     if app.stored_address is None:
         return
 
-    subprocess.run(['java', '-jar', 'd592client.jar', app.stored_address])
+    subprocess.run(['java', '-jar', JAR_LOCATION, app.stored_address])
 
 
 class Application(tkinter.Frame):

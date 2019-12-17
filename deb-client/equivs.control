@@ -1,0 +1,19 @@
+Section: multiverse/games
+Standards-Version: 3.9.2
+
+Package: d592-client
+Version: 0.4
+
+Depends: openjdk-8-jre, python3
+
+Priority: optional
+Homepage: github.com/leskin-in/simpleplat
+Maintainer: Ivan Leskin <leskin.in@phystech.edu>
+
+Links: /usr/share/d592-client/client.py /usr/games/d592-client
+
+Files: ./files/client.py /usr/share/d592-client
+ ./files/d592client.jar /usr/share/d592-client
+
+Description: DOOM-592 client with a GUI based on Java
+ This is the client of DOOM-592 - a simple multiplayer online platformer.

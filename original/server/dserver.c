@@ -323,7 +323,7 @@ void print_help(void) {
 	
 	printf("\t\x1B[1m-m, --map <map file>\x1B[0m\n");
 	printf("\tUse given map file.\n");
-	printf("\tIf not given, \"./map\" is used instead.\n");
+	printf("\tIf not given, \"/var/d592-server/example_1.map\" is used instead.\n");
 	printf("\n");
 	
 	printf("\t\x1B[1m-n, --max-players <number>\x1B[0m\n");
@@ -428,8 +428,8 @@ int main(int argc, char** argv) {
 	// Process command line arguments and set parameters //
 	
 	{
-		char* map_file = malloc(strlen("./map") + 1);
-		strcpy(map_file, "./map");
+		char* map_file = malloc(strlen("/var/d592-server/example_1.map") + 1);
+		strcpy(map_file, "/var/d592-server/example_1.map");
 		
 		char* log_file = malloc(strlen("./game.log") + 1);
 		strcpy(log_file, "./game.log");

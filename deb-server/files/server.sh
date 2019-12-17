@@ -5,17 +5,17 @@ ARGS=$@
 
 while [[ 1 ]]
 do
-    ./server ${ARGS}
+    /usr/share/d592-server/server ${ARGS}
     read -p "Start a new game session? [y|n] "
     case ${REPLY} in
         y|Y|yes|YES|Yes)    :;;
         *)                  break;;
     esac
-    read -p "Would you like to change the server configuration? [y|n] "
+    read -p "Leave server run options unchanged? [y|n] "
     case ${REPLY} in
-        y|Y|yes|YES|Yes)    :;;
-        *)                  continue;;
+        y|Y|yes|YES|Yes)    continue;;
+        *)                  :;;
     esac
-    read -p "New server configuration (arguments): "
+    read -p "New server run options (command line arguments): "
     ARGS=${REPLY}
 done
