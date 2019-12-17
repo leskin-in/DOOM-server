@@ -29,6 +29,7 @@ public class Client {
         // Launch GUI
         EventQueue.invokeLater(() -> {
             JFrame frame = new ClientFrame(serverUrl);
+            frame.setLocationRelativeTo(null);
             frame.setVisible(true);
         });
     }
