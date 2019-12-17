@@ -79,6 +79,7 @@ enter the running server address:"""
         ww, wh = 267, 375
         sw, sh = self._master.winfo_screenwidth(), self._master.winfo_screenheight()
         self._master.geometry('%dx%d+%d+%d' % (ww, wh, (sw / 2 - ww / 2), (sh / 2 - wh / 2)))
+        self.master.title("D592 client")
 
     def set_address_event(self, event):
         self.set_address()
